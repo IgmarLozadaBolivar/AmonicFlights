@@ -20,4 +20,6 @@ public interface IUsuario {
     int idUserByEmail(Usuario usuario);
     
     int autenticarUsuario(Usuario usuario);
+    
+    int ultimoUsuarioConID();
 }

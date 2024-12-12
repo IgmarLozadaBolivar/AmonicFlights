@@ -13,6 +13,7 @@ public class FormLogin extends javax.swing.JFrame {
     private RolDAO rolDAO;
     private Usuario usuario;
     private UsuarioDAO usuarioDAO;
+    private FormMenuAdministrador formMenuAdministrador;
     
     public FormLogin() {
         initComponents();
@@ -39,6 +40,10 @@ public class FormLogin extends javax.swing.JFrame {
                     null, 
                     "Bienvenido querido Administrador", "Successful", 
                     JOptionPane.INFORMATION_MESSAGE);
+                this.setVisible(false);
+                formMenuAdministrador = new FormMenuAdministrador();
+                formMenuAdministrador.setVisible(true);
+                formMenuAdministrador.setLocationRelativeTo(null);
             } else {
                 JOptionPane.showMessageDialog(
                     null, 
@@ -106,7 +111,7 @@ public class FormLogin extends javax.swing.JFrame {
                 .addComponent(lblTitleForm)
                 .addGap(0, 0, Short.MAX_VALUE))
             .addGroup(layout.createSequentialGroup()
-                .addGap(145, 145, 145)
+                .addGap(153, 153, 153)
                 .addComponent(btnEntrar, javax.swing.GroupLayout.PREFERRED_SIZE, 130, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
@@ -123,9 +128,9 @@ public class FormLogin extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addComponent(txtUserPass)
                     .addComponent(lblUserPass, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(42, 42, 42)
+                .addGap(50, 50, 50)
                 .addComponent(btnEntrar, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(44, 44, 44))
+                .addGap(36, 36, 36))
         );
 
         pack();

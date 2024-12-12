@@ -49,7 +49,29 @@ public class UsuarioDAO implements IUsuario {
 
     @Override
     public boolean createNewUser(Usuario usuario) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        
+        String sql = "insert into users(ID, RoleID, Email, Password, FirstName, LastName, OfficeID, Birthdate, Active)" +
+                " values(?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            ps.setInt(1, usuario.getId());
+            ps.setInt(2, usuario.getIdRoleFK());
+            ps.setString(3, usuario.getEmail());
+            ps.setString(4, usuario.getPassword());
+            ps.setString(5, usuario.getNombre());
+            ps.setString(6, usuario.getLastName());
+            ps.setInt(7, usuario.getIdOficinaFK());
+            ps.setDate(8, new java.sql.Date(usuario.getFechaNacimiento().getTime()));
+            ps.setInt(9, usuario.getActive());
+            ps.execute();
+            
+            
+        } catch (Exception e) {
+            System.out.println("Error al registrar el usuario: " + e.getMessage());
+        }
+        
+        return false;
     }
 
     @Override
@@ -89,6 +111,24 @@ public class UsuarioDAO implements IUsuario {
             
         } catch (Exception e) {
             System.out.println("No se encuentran coincidencias, más detalles: " + e.getMessage());
+        }
+        
+        return 0;
+    }
+
+    @Override
+    public int ultimoUsuarioConID() {
+        String sql = "select max(ID) as ID from users";
+        
+        try (PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                int idRol = rs.getInt("ID");
+                return idRol;
+            }
+            
+        } catch (Exception e) {
+            System.out.println("No existen usuarios registrados: " + e.getMessage());
         }
         
         return 0;
