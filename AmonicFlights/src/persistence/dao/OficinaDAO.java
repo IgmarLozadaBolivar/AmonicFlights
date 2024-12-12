@@ -60,7 +60,23 @@ public class OficinaDAO implements IOficina {
 
     @Override
     public String officeById(Oficina oficina) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        
+        String sql = "select Title from offices where ID = ?";
+        
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            ps.setInt(1, oficina.getId());
+            ResultSet rs = ps.executeQuery();
+            
+            if (rs.next()) {
+                return rs.getString("Title");
+            }
+            
+        } catch (Exception e) {
+            System.out.println("No se encontró ninguna coincidencia: " + e.getMessage());
+        }
+        
+        return null;
     }
 
     @Override

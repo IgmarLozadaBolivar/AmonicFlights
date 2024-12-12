@@ -40,6 +40,8 @@ public class UsuarioDAO implements IUsuario {
                 usuarios.add(usuario);
             }
             
+            System.out.println("No hay problemas");
+            
         } catch (Exception e) {
             System.out.println("No se encontraron usuarios en la tabla, más detalles: " + e.getMessage());
         }
@@ -132,6 +134,38 @@ public class UsuarioDAO implements IUsuario {
         }
         
         return 0;
+    }
+
+    @Override
+    public List<Usuario> listaUsuariosPorOficina(Usuario usuario) {
+        List<Usuario> usuarios = new ArrayList<>();
+        
+        String sql = "select * from users where OfficeID = ?";
+        
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            ps.setInt(1, usuario.getIdOficinaFK());
+            ResultSet rs = ps.executeQuery();
+            
+            while (rs.next()) {                
+                this.usuario = new Usuario();
+                usuario.setId(rs.getInt("ID"));
+                usuario.setIdRoleFK(rs.getInt("RoleID"));
+                usuario.setEmail(rs.getString("Email"));
+                usuario.setPassword(rs.getString("Password"));
+                usuario.setNombre(rs.getString("FirstName"));
+                usuario.setLastName(rs.getString("LastName"));
+                usuario.setIdOficinaFK(rs.getInt("OfficeID"));
+                usuario.setFechaNacimiento(rs.getDate("Birthdate"));
+                usuario.setActive(rs.getInt("Active"));
+                usuarios.add(usuario);
+            }
+            
+        } catch (Exception e) {
+            System.out.println("No se encontraron usuarios en la tabla, más detalles: " + e.getMessage());
+        }
+        
+        return usuarios;
     }
     
 }

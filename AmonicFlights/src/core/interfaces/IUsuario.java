@@ -22,4 +22,6 @@ public interface IUsuario {
     int autenticarUsuario(Usuario usuario);
     
     int ultimoUsuarioConID();
+    
+    List<Usuario> listaUsuariosPorOficina(Usuario usuario);
 }

@@ -17,7 +17,7 @@ public class Conexion {
         
         try {
             conn = DriverManager.getConnection(
-                    "jdbc:mysql://44.199.201.71:3306/session1", 
+                    "jdbc:mysql://localhost:3306/session1", 
                     "root", "0000");
         } catch (SQLException sqlEx) {
             System.out.println("Error al conectar la base de datos, más detalles: " + sqlEx.getMessage());
