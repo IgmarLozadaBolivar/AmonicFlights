@@ -58,7 +58,22 @@ public class RolDAO implements IRol {
 
     @Override
     public String roleById(Rol rol) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        
+        String sql = "select Title from roles where ID = ?";
+        
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            ps.setInt(1, rol.getId());
+            ResultSet rs = ps.executeQuery();
+            
+            if (rs.next()) {
+                return rs.getString("Title");
+            }
+            
+        } catch (Exception e) {
+        }
+        
+        return null;
     }
 
     @Override

@@ -71,5 +71,27 @@ public class UsuarioDAO implements IUsuario {
     public int idUserByEmail(Usuario usuario) {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
+
+    @Override
+    public int autenticarUsuario(Usuario usuario) {
+        
+        String sql = "select RoleID from users where Email = ? and Password = ?";
+        
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                        
+            ps.setString(1, usuario.getEmail());
+            ps.setString(2, usuario.getPassword());
+            ResultSet rs = ps.executeQuery();
+            
+            if (rs.next()) {
+                return rs.getInt("RoleID");
+            }
+            
+        } catch (Exception e) {
+            System.out.println("No se encuentran coincidencias, más detalles: " + e.getMessage());
+        }
+        
+        return 0;
+    }
     
 }

@@ -18,4 +18,6 @@ public interface IUsuario {
     String userById(Usuario usuario);
 
     int idUserByEmail(Usuario usuario);
+    
+    int autenticarUsuario(Usuario usuario);
 }
