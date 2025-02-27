@@ -6,4 +6,8 @@ public class Rol extends BaseEntity {
     public Rol(int id, String title) {
         super(id, title);
     }
+    
+    public Rol(int id) {
+        super (id);
+    }
 }

@@ -6,8 +6,15 @@ import persistence.dao.OficinaDAO;
 import core.entities.Rol;
 import persistence.dao.RolDAO;
 import core.entities.Usuario;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.event.ItemEvent;
 import java.time.LocalDate;
 import java.time.Period;
+import java.util.ArrayList;
+import java.util.List;
+import javax.swing.JTable;
+import javax.swing.table.DefaultTableCellRenderer;
 import persistence.dao.UsuarioDAO;
 import persistence.database.Conexion;
 
@@ -30,7 +37,10 @@ public class FormMenuAdministrador extends javax.swing.JFrame {
 //        }
 //        usuarioDAO = new UsuarioDAO(conn);
 //        rolDAO = new RolDAO(conn);
-////        oficinaDAO = new OficinaDAO(conn);
+
+    
+
+    ////        oficinaDAO = new OficinaDAO(conn);
     }
 
     private void cerrarSesion() {
@@ -53,7 +63,7 @@ public class FormMenuAdministrador extends javax.swing.JFrame {
         tblUsers.setModel(modelTable);
         rellenarTabla();
     }
-    
+
     private void rellenarComboOficinas() {
         var conn = Conexion.getConexion();
         OficinaDAO oficinaDAO = new OficinaDAO(conn);
@@ -62,43 +72,80 @@ public class FormMenuAdministrador extends javax.swing.JFrame {
             cmbOficinas.addItem(oficinas.getNombre());
         }
     }
-    
+
     private void listarUsuariosPorOficina() {
-        limpiarTabla();
+        System.out.println("Ejecutando listarUsuariosPorOficina()...");
+        limpiarTabla(); // Limpia la tabla antes de agregar nuevos datos
+
         String nombreOficina = String.valueOf(cmbOficinas.getSelectedItem());
+
         var conn = Conexion.getConexion();
-        Oficina oficina = new Oficina();
+
         OficinaDAO oficinaDAO = new OficinaDAO(conn);
-        oficina.setNombre(nombreOficina);
-        int idOficinaFK = oficinaDAO.idOfficeByNombre(oficina);
-        Usuario usuario = new Usuario();
         UsuarioDAO usuarioDAO = new UsuarioDAO(conn);
         RolDAO rolDAO = new RolDAO(conn);
-        usuario.setIdOficinaFK(idOficinaFK);
-        if (usuarioDAO.listaUsuariosPorOficina(usuario).isEmpty()&& !nombreOficina.equals("All offices")) {
-            System.out.println("No hay usuarios en esa oficina");
+
+        // Obtener ID de la oficina seleccionada
+        int idOficinaFK = 0;
+        if (!nombreOficina.equals("All offices")) {
+            Oficina oficina = new Oficina();
+            oficina.setNombre(nombreOficina);
+            idOficinaFK = oficinaDAO.idOfficeByNombre(oficina);
+        }
+
+        // Obtener la lista de usuarios según el filtro
+        List<Usuario> listaUsuarios;
+        if (nombreOficina.equals("All offices")) {
+            listaUsuarios = usuarioDAO.listaUsuarios();
         } else {
-            for (Usuario usuarios : usuarioDAO.listaUsuariosPorOficina(usuario)) {
-                // Calcular la edad actual
-                LocalDate fechaActual = LocalDate.now();
-                java.sql.Date fechaNacimiento = (java.sql.Date) usuarios.getFechaNacimiento();
+            Usuario usuarioFiltro = new Usuario();
+            usuarioFiltro.setIdOficinaFK(idOficinaFK);
+            listaUsuarios = usuarioDAO.listaUsuariosPorOficina(usuarioFiltro);
+        }
+
+        if (listaUsuarios.isEmpty()) {
+            System.out.println("No hay usuarios en esa oficina");
+            return;
+        }
+
+        List<Integer> estadoActivo = new ArrayList<>();
+
+        System.out.println("Usuarios obtenidos para la oficina: " + nombreOficina);
+        for (Usuario usuario : listaUsuarios) {
+            System.out.println(usuario.getNombre());
+
+            // Calcular la edad actual
+            LocalDate fechaActual = LocalDate.now();
+            java.sql.Date fechaNacimiento = (java.sql.Date) usuario.getFechaNacimiento();
+
+            int edad = 0; // Valor por defecto si no hay fecha de nacimiento
+            if (fechaNacimiento != null) {
                 LocalDate fechaNacimientoLocalDate = fechaNacimiento.toLocalDate();
                 Period edadActual = Period.between(fechaNacimientoLocalDate, fechaActual);
-
-                // Retornar el nombre del rol por su ID
-                Rol rol = new Rol();
-                rol.setId(usuarios.getIdRoleFK());
-                String nombreRole = rolDAO.roleById(rol);
-
-                // Retornar el nombre de la oficina por su ID
-                oficina.setId(usuarios.getIdOficinaFK());
-                String nombreOffice = oficinaDAO.officeById(oficina);
-
-                // Almacenar los datos recuperados de un solo usuario e irlos almacenando en el Object
-                Object[] dataUsuarios = {usuarios.getNombre(), usuarios.getLastName(),
-                    edadActual.getYears(), nombreRole, usuarios.getEmail(), nombreOffice};
-                modelTable.addRow(dataUsuarios);
+                edad = edadActual.getYears();
             }
+
+            // Obtener el nombre del rol
+            String nombreRole = rolDAO.roleById(new Rol(usuario.getIdRoleFK()));
+
+            // Obtener el nombre de la oficina
+            String nombreOffice = oficinaDAO.officeById(new Oficina(usuario.getIdOficinaFK()));
+
+            estadoActivo.add(usuario.getActive());
+
+            // Crear una nueva instancia de datos para cada fila
+            Object[] dataUsuarios = {
+                usuario.getNombre(),
+                usuario.getLastName(),
+                edad,
+                nombreRole,
+                usuario.getEmail(),
+                nombreOffice
+            };
+
+            modelTable.addRow(dataUsuarios); // Agregar cada fila sin referencias compartidas
+            
+            tblUsers.setDefaultRenderer(Object.class, new UserStatusRenderer(estadoActivo));
         }
     }
 
@@ -107,7 +154,13 @@ public class FormMenuAdministrador extends javax.swing.JFrame {
         UsuarioDAO usuarioDAO = new UsuarioDAO(conn);
         RolDAO rolDAO = new RolDAO(conn);
         OficinaDAO oficinaDAO = new OficinaDAO(conn);
+
+        limpiarTabla();
+
+        List<Integer> estadoActivo = new ArrayList<>();
+
         for (Usuario usuarios : usuarioDAO.listaUsuarios()) {
+
             // Calcular la edad actual
             LocalDate fechaActual = LocalDate.now();
             java.sql.Date fechaNacimiento = (java.sql.Date) usuarios.getFechaNacimiento();
@@ -124,23 +177,61 @@ public class FormMenuAdministrador extends javax.swing.JFrame {
             oficina.setId(usuarios.getIdOficinaFK());
             String nombreOffice = oficinaDAO.officeById(oficina);
 
+            estadoActivo.add(usuarios.getActive());
+
             // Almacenar los datos recuperados de un solo usuario e irlos almacenando en el Object
-            Object[] dataUsuarios = {usuarios.getNombre(), usuarios.getLastName(),
-                edadActual.getYears(), nombreRole, usuarios.getEmail(), nombreOffice};
+            Object[] dataUsuarios = {
+                usuarios.getNombre(),
+                usuarios.getLastName(),
+                edadActual.getYears(),
+                nombreRole,
+                usuarios.getEmail(),
+                nombreOffice
+            };
+
             modelTable.addRow(dataUsuarios);
-            
+
+            tblUsers.setDefaultRenderer(Object.class, new UserStatusRenderer(estadoActivo));
+
+        }
+    }
+
+    // Clase para colorear filas basado en la lista de estados
+    class UserStatusRenderer extends DefaultTableCellRenderer {
+
+        private final List<Integer> estadoActivo;
+
+        public UserStatusRenderer(List<Integer> estadoActivo) {
+            this.estadoActivo = estadoActivo;
+        }
+
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value,
+                boolean isSelected, boolean hasFocus, int row, int column) {
+
+            // Obtener el componente de la celda
+            Component cell = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+
+            int activo = estadoActivo.get(row);
+
+            // Aplicar color según el estado
+            if (activo == 1) {
+                cell.setBackground(Color.GREEN);
+                cell.setForeground(Color.BLACK);
+            } else {
+                cell.setBackground(Color.RED);
+                cell.setForeground(Color.WHITE);
+            }
+
+            return cell;
         }
     }
 
     private void limpiarTabla() {
-        DefaultTableModel temp = (DefaultTableModel) tblUsers.getModel();
-        int filas = tblUsers.getRowCount();
-
-        for (int a = 0; filas > a; a++) {
-            temp.removeRow(0);
-        }
+        DefaultTableModel modelo = (DefaultTableModel) tblUsers.getModel();
+        modelo.setRowCount(0);
     }
-    
+
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
@@ -241,7 +332,9 @@ public class FormMenuAdministrador extends javax.swing.JFrame {
     }//GEN-LAST:event_mExitMenuSelected
 
     private void cmbOficinasItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_cmbOficinasItemStateChanged
-        listarUsuariosPorOficina();
+        if (evt.getStateChange() == ItemEvent.SELECTED) {
+            listarUsuariosPorOficina();
+        }
     }//GEN-LAST:event_cmbOficinasItemStateChanged
 
     public static void main(String args[]) {
@@ -255,16 +348,24 @@ public class FormMenuAdministrador extends javax.swing.JFrame {
                 if ("Nimbus".equals(info.getName())) {
                     javax.swing.UIManager.setLookAndFeel(info.getClassName());
                     break;
+
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(FormMenuAdministrador.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(FormMenuAdministrador.class
+                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
+
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(FormMenuAdministrador.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(FormMenuAdministrador.class
+                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
+
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(FormMenuAdministrador.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(FormMenuAdministrador.class
+                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
+
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(FormMenuAdministrador.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(FormMenuAdministrador.class
+                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
 

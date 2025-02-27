@@ -15,6 +15,10 @@ public class Oficina extends BaseEntity {
         this.phone = phone;
         this.contact = contact;
     }
+    
+    public Oficina(int id) {
+        super(id);
+    }
 
     public int getIdPaisFK() {
         return idPaisFK;

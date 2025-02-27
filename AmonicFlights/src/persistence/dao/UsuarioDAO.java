@@ -40,8 +40,6 @@ public class UsuarioDAO implements IUsuario {
                 usuarios.add(usuario);
             }
             
-            System.out.println("No hay problemas");
-            
         } catch (Exception e) {
             System.out.println("No se encontraron usuarios en la tabla, más detalles: " + e.getMessage());
         }
@@ -148,17 +146,17 @@ public class UsuarioDAO implements IUsuario {
             ResultSet rs = ps.executeQuery();
             
             while (rs.next()) {                
-                this.usuario = new Usuario();
-                usuario.setId(rs.getInt("ID"));
-                usuario.setIdRoleFK(rs.getInt("RoleID"));
-                usuario.setEmail(rs.getString("Email"));
-                usuario.setPassword(rs.getString("Password"));
-                usuario.setNombre(rs.getString("FirstName"));
-                usuario.setLastName(rs.getString("LastName"));
-                usuario.setIdOficinaFK(rs.getInt("OfficeID"));
-                usuario.setFechaNacimiento(rs.getDate("Birthdate"));
-                usuario.setActive(rs.getInt("Active"));
-                usuarios.add(usuario);
+                Usuario nuevoUsuario = new Usuario();
+                nuevoUsuario.setId(rs.getInt("ID"));
+                nuevoUsuario.setIdRoleFK(rs.getInt("RoleID"));
+                nuevoUsuario.setEmail(rs.getString("Email"));
+                nuevoUsuario.setPassword(rs.getString("Password"));
+                nuevoUsuario.setNombre(rs.getString("FirstName"));
+                nuevoUsuario.setLastName(rs.getString("LastName"));
+                nuevoUsuario.setIdOficinaFK(rs.getInt("OfficeID"));
+                nuevoUsuario.setFechaNacimiento(rs.getDate("Birthdate"));
+                nuevoUsuario.setActive(rs.getInt("Active"));
+                usuarios.add(nuevoUsuario);
             }
             
         } catch (Exception e) {
